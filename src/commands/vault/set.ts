@@ -25,7 +25,7 @@ export function registerVaultSet(vaultCmd: Command): void {
   vaultCmd
     .command('set')
     .description('Store a secret in the vault')
-    .requiredOption('--agent <id>', 'Agent ID to scope the secret to')
+    .option('--agent <id>', 'Agent ID to scope the secret to (omit for org-level secrets)')
     .requiredOption('--key <key>', 'Secret key name (e.g. OPENAI_API_KEY)')
     .option(
       '--value <value>',
@@ -33,7 +33,7 @@ export function registerVaultSet(vaultCmd: Command): void {
     )
     .option('--json', 'Output raw JSON')
     .action(
-      async (opts: { agent: string; key: string; value?: string; json?: boolean }) => {
+      async (opts: { agent?: string; key: string; value?: string; json?: boolean }) => {
         requireAuth()
 
         if (!SECRET_NAME_RE.test(opts.key)) {
@@ -66,7 +66,7 @@ export function registerVaultSet(vaultCmd: Command): void {
           secret = await post<VaultSecretResponse>('/api/v1/vault/secrets', {
             name: opts.key,
             value: secretValue,
-            agent_id: opts.agent,
+            agent_id: opts.agent ?? null,
           })
         } catch (err) {
           if (err instanceof ApiError) {
@@ -83,7 +83,8 @@ export function registerVaultSet(vaultCmd: Command): void {
           return
         }
 
-        printSuccess(`Secret '${opts.key}' set for agent ${opts.agent}.`)
+        const scope = opts.agent ? `agent ${opts.agent}` : 'org-level'
+        printSuccess(`Secret '${opts.key}' set (${scope}).`)
       }
     )
 }

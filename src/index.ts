@@ -4,8 +4,10 @@ import { registerLogin } from './commands/login.js'
 import { registerLogout } from './commands/logout.js'
 import { registerStatus } from './commands/status.js'
 import { registerAgentCommands } from './commands/agent/index.js'
+import { registerMcpServersCommands } from './commands/mcp-servers/index.js'
 import { registerPermissionsCommands } from './commands/permissions/index.js'
 import { registerVaultCommands } from './commands/vault/index.js'
+import { registerTestCall } from './commands/test-call.js'
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../package.json') as { version: string }
@@ -25,8 +27,10 @@ registerLogin(program)
 registerLogout(program)
 registerStatus(program)
 registerAgentCommands(program)
+registerMcpServersCommands(program)
 registerPermissionsCommands(program)
 registerVaultCommands(program)
+registerTestCall(program)
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   if (err instanceof Error) {
