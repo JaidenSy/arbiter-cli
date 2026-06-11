@@ -2,6 +2,12 @@
 
 Official CLI for [Arbiter](https://arbiterai.dev) — the developer-first MCP gateway with agent identity, tool-level access control, secrets vault, and full observability.
 
+![Claude Code calling tools through Arbiter: a permitted call succeeds (cache hit), a denied tool is blocked by per-agent RBAC, and both land in the session trace](docs/demo.gif)
+
+*Left: Claude Code calling tools through the gateway. Right: Arbiter dashboard — permitted call lands as a cache hit (10 ms), denied call is blocked by tool-level RBAC and appears in the audit trail.*
+
+---
+
 ## Install
 
 ```bash
