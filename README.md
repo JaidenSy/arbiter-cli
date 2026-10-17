@@ -8,7 +8,7 @@ Official CLI for [Arbiter](https://arbiterai.dev) — the developer-first MCP ga
 npm install -g @arbiterai/cli
 ```
 
-Requires Node.js 18+.
+Requires Node.js 20+.
 
 ## Quickstart
 
@@ -34,7 +34,7 @@ Authenticate with Arbiter using the browser-based device flow. Opens a browser t
 
 ### `arbiter logout`
 
-Clear your local session. Does not revoke the token server-side.
+Revoke the token server-side (`POST /api/v1/auth/logout`, which blocklists it) and delete the local session. If the API is unreachable the local session is still cleared and the CLI warns that the token stays valid until it expires.
 
 ### `arbiter status [--json]`
 
@@ -85,21 +85,25 @@ List all permissions granted to an agent.
 | `--agent <id>` | Agent ID (required) |
 | `--json` | Output raw JSON |
 
-### `arbiter vault set --agent <id> --key <key> --value <value> [--json]`
+### `arbiter vault set [--agent <id>] --key <key> [--value <value>] [--json]`
 
-Store a secret in the vault scoped to an agent. Key must match `[A-Za-z0-9_]+`.
+Store a secret in the vault, scoped to an agent or (without `--agent`) to the org. Key must match `[A-Za-z0-9_]+`.
 
-To avoid the secret appearing in shell history, use:
+Passing `--value` puts the secret in the process list and shell history. Prefer omitting it:
 
 ```bash
-read -s VAL && arbiter vault set --agent <id> --key MY_KEY --value "$VAL"
+# Interactive: prompts with masked input
+arbiter vault set --agent <id> --key MY_KEY
+
+# Scripts/CI: pipe it on stdin
+printf %s "$MY_KEY" | arbiter vault set --agent <id> --key MY_KEY
 ```
 
 | Flag | Description |
 |------|-------------|
-| `--agent <id>` | Agent ID to scope the secret to (required) |
+| `--agent <id>` | Agent ID to scope the secret to (omit for an org-level secret) |
 | `--key <key>` | Secret key name, e.g. `OPENAI_API_KEY` (required) |
-| `--value <value>` | Secret value (required) |
+| `--value <value>` | Secret value. Omit it to be prompted with masked input (TTY) or to read it from stdin (piped), which keeps the value out of `ps` and shell history |
 | `--json` | Output raw JSON |
 
 ## Auth
@@ -111,7 +115,7 @@ Arbiter CLI uses the [OAuth 2.0 Device Authorization Grant](https://datatracker.
 3. The CLI polls for the token (every 3 seconds, up to 15 minutes).
 4. On success, the token and org ID are written to `~/.config/arbiter/config.json` (mode `0600`).
 
-To target a self-hosted or staging instance:
+The CLI talks to `https://api.arbiterai.dev` by default. To target a self-hosted or staging instance:
 
 ```bash
 arbiter --api-url https://your-instance.example.com login
@@ -122,6 +126,8 @@ Or set the environment variable:
 ```bash
 export ARBITER_API_URL=https://your-instance.example.com
 ```
+
+Precedence: `--api-url` / `ARBITER_API_URL`, then the `api_url` saved in `~/.config/arbiter/config.json` (written when you log in with an override), then the default.
 
 ## License
 
