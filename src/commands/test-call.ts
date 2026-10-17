@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { get } from '../lib/api.js'
-import { requireAuth, getConfig } from '../lib/config.js'
+import { requireAuth, resolveApiUrl } from '../lib/config.js'
 import { printError } from '../lib/output.js'
 import type { MCPServerPage } from '../types/index.js'
 import axios from 'axios'
@@ -46,7 +46,6 @@ export function registerTestCall(program: Command): void {
           printError('--params must be valid JSON, e.g. \'{"path": "/tmp/test.txt"}\'')
         }
 
-        const cfg = getConfig()
         const apiKey = opts.agentKey
 
         if (!apiKey) {
@@ -56,7 +55,7 @@ export function registerTestCall(program: Command): void {
           )
         }
 
-        const baseUrl = (process.env['ARBITER_API_URL'] ?? cfg?.api_url ?? 'https://api.arbiterai.dev').replace(/\/$/, '')
+        const baseUrl = resolveApiUrl()
 
         let result: ToolCallResponse
         try {
