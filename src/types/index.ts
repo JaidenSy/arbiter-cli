@@ -1,7 +1,8 @@
 export interface ArbiterConfig {
   access_token: string
   org_id: string
-  api_url: string
+  /** Only present when the user explicitly chose a gateway (--api-url / ARBITER_API_URL). */
+  api_url?: string
   user_email?: string
   logged_in_at?: string
 }

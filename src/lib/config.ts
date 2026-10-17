@@ -2,8 +2,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import type { ArbiterConfig } from '../types/index.js'
-
-const DEFAULT_API_URL = 'https://nexusai-api-production.up.railway.app'
+import { DEFAULT_API_URL } from './constants.js'
 
 function getConfigDir(): string {
   return path.join(os.homedir(), '.config', 'arbiter')
@@ -27,10 +26,16 @@ export function setConfig(data: Partial<ArbiterConfig>): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
-  const existing = getConfig() ?? { api_url: resolveApiUrl(), access_token: '', org_id: '' }
-  const updated: ArbiterConfig = { ...existing, ...data }
+  const existing: ArbiterConfig = getConfig() ?? { access_token: '', org_id: '' }
+  // Persist an explicit override (--api-url / ARBITER_API_URL) on first write so later
+  // commands keep talking to the same gateway. The built-in default is deliberately NOT
+  // persisted, so a DEFAULT_API_URL change in a new release reaches existing installs.
+  const envUrl = process.env['ARBITER_API_URL']
+  const seeded: ArbiterConfig =
+    existing.api_url || !envUrl ? existing : { ...existing, api_url: envUrl }
+  const updated: ArbiterConfig = { ...seeded, ...data }
   const filePath = getConfigPath()
-  fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), 'utf-8')
+  fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), { encoding: 'utf-8', mode: 0o600 })
   fs.chmodSync(filePath, 0o600)
 }
 
@@ -55,10 +60,12 @@ export function requireAuth(): ArbiterConfig {
   return cfg
 }
 
+/**
+ * API base URL, without a trailing slash.
+ * Precedence: ARBITER_API_URL env (also set by --api-url) > config file > DEFAULT_API_URL.
+ */
 export function resolveApiUrl(): string {
   const envUrl = process.env['ARBITER_API_URL']
-  if (envUrl) return envUrl
-  const cfg = getConfig()
-  if (cfg?.api_url) return cfg.api_url
-  return DEFAULT_API_URL
+  const url = envUrl || getConfig()?.api_url || DEFAULT_API_URL
+  return url.replace(/\/+$/, '')
 }

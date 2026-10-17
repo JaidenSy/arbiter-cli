@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/JaidenSy/arbiter-cli.git"
   },
-  "type": "commonjs",
+  "type": "module",
   "bin": {
     "arbiter": "dist/index.js"
   },
@@ -23,13 +23,16 @@
     "dist"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "eslint src --max-warnings 0",
+    "lint": "eslint src test --max-warnings 0",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node dist/index.js --help",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -46,6 +49,10 @@
     "eslint": "^9.13.0",
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.57.2"
+    "typescript-eslint": "^8.57.2",
+    "vitest": "^3.2.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

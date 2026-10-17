@@ -8,16 +8,15 @@ import { registerMcpServersCommands } from './commands/mcp-servers/index.js'
 import { registerPermissionsCommands } from './commands/permissions/index.js'
 import { registerVaultCommands } from './commands/vault/index.js'
 import { registerTestCall } from './commands/test-call.js'
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pkg = require('../package.json') as { version: string }
+// Inlined at build time by esbuild; only the `version` field ends up in the bundle.
+import { version } from '../package.json'
 
 const program = new Command()
 
 program
   .name('arbiter')
   .description('Arbiter CLI — manage your MCP gateway from the terminal')
-  .version(pkg.version, '-v, --version')
+  .version(version, '-v, --version')
   .option('--api-url <url>', 'Override API base URL', (url) => {
     process.env['ARBITER_API_URL'] = url
     resetClient()
