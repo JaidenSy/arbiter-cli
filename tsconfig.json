@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -11,8 +11,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "types": ["node"],
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": ["src", "test", "tsup.config.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
