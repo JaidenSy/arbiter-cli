@@ -1,25 +1,11 @@
-import * as readline from 'node:readline'
 import { Command } from 'commander'
 import { post, ApiError } from '../../lib/api.js'
 import { requireAuth } from '../../lib/config.js'
 import { printSuccess, printError } from '../../lib/output.js'
+import { promptSecret, readSecretFromStream } from '../../lib/secret-input.js'
 import type { VaultSecretResponse } from '../../types/index.js'
 
 const SECRET_NAME_RE = /^[A-Za-z0-9_]+$/
-
-function promptSecret(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-    process.stdout.write(prompt)
-    // Suppress echo by overriding the output stream write so keystrokes are invisible
-    ;(rl as unknown as { output: { write: () => boolean } }).output.write = () => true
-    rl.question('', (answer) => {
-      rl.close()
-      process.stdout.write('\n')
-      resolve(answer)
-    })
-  })
-}
 
 export function registerVaultSet(vaultCmd: Command): void {
   vaultCmd
@@ -51,15 +37,11 @@ export function registerVaultSet(vaultCmd: Command): void {
           // Interactive TTY: prompt with masked input so the value never appears in
           // process args, shell history, or terminal scrollback.
           secretValue = await promptSecret(`Secret value for ${opts.key}: `)
-          if (!secretValue) printError('Secret value cannot be empty.')
         } else {
           // Non-TTY (piped): read from stdin  e.g.  echo $VAL | arbiter vault set ...
-          secretValue = await new Promise<string>((resolve) => {
-            let data = ''
-            process.stdin.on('data', (chunk) => (data += chunk))
-            process.stdin.on('end', () => resolve(data.trim()))
-          })
+          secretValue = await readSecretFromStream(process.stdin)
         }
+        if (!secretValue) printError('Secret value cannot be empty.')
 
         let secret: VaultSecretResponse
         try {
